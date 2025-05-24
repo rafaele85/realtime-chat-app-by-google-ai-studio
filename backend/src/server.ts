@@ -1,23 +1,27 @@
 import fastify from 'fastify';
+import { connectDb } from './db'; // Import the connectDb function
 
 // Create a Fastify instance
 const server = fastify({
-    logger: true, // Enable logging for better development experience
+    logger: true,
 });
 
 // Define a simple root route
-// Use _request and _reply to indicate that these parameters are intentionally unused in this specific handler
 server.get('/', async (_request, _reply) => {
     return { message: 'Hello from Messenger Chat Backend!' };
 });
 
 // Define the port and host
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3001;
-const HOST = process.env.HOST || '0.0.0.0'; // Listen on all available network interfaces
+const HOST = process.env.HOST || '0.0.0.0';
 
-// Start the server
+// Start the server function
 const start = async () => {
     try {
+        // 1. Connect to the database first
+        await connectDb();
+
+        // 2. Then start the Fastify server
         await server.listen({ port: PORT, host: HOST });
         console.log(`Server listening on http://${HOST}:${PORT}`);
     } catch (err) {
@@ -26,10 +30,8 @@ const start = async () => {
     }
 };
 
-// Export the start function for external use (e.g., in package.json scripts)
 export { start };
 
-// If this file is run directly, start the server
 if (require.main === module) {
     start();
 }
