@@ -1,26 +1,34 @@
 import { Sequelize } from 'sequelize';
 import path from 'path';
+import { initUserModel } from '../models/user.model'; // Import user model init
 
 // Determine the database file path
-// In development, it will be in the project root.
-// In production (after build), it will be in the 'dist' folder.
 const dbPath = path.resolve(__dirname, '..', '..', 'data', 'database.sqlite');
 
 // Initialize Sequelize with SQLite
 const sequelize = new Sequelize({
     dialect: 'sqlite',
-    storage: dbPath, // Path to the SQLite database file
-    logging: false, // Set to true to see SQL queries in console
+    storage: dbPath,
+    logging: false,
 });
 
-// Function to connect to the database
+// Function to connect to the database and initialize models
 const connectDb = async () => {
     try {
         await sequelize.authenticate();
         console.log('Database connection has been established successfully.');
+
+        // Initialize models
+        initUserModel(sequelize);
+        // Add other model initializations here as you create them
+
+        // Sync models (This is okay for initial setup/development, but migrations are preferred for schema changes)
+        // await sequelize.sync({ alter: true }); // Use alter: true carefully in production!
+        // console.log('Database models synced.');
+
     } catch (error) {
         console.error('Unable to connect to the database:', error);
-        process.exit(1); // Exit the process if database connection fails
+        process.exit(1);
     }
 };
 
