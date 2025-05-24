@@ -1,6 +1,9 @@
 import { Sequelize } from 'sequelize';
 import path from 'path';
-import { initUserModel } from '../models/user.model'; // Import user model init
+import { initUserModel } from '../models/user.model';
+import { initConversationModel } from '../models/conversation.model'; // New import
+import { initMessageModel } from '../models/message.model';       // New import
+import { defineAssociations } from '../models/associations';     // New import
 
 // Determine the database file path
 const dbPath = path.resolve(__dirname, '..', '..', 'data', 'database.sqlite');
@@ -20,10 +23,14 @@ const connectDb = async () => {
 
         // Initialize models
         initUserModel(sequelize);
-        // Add other model initializations here as you create them
+        initConversationModel(sequelize); // Initialize Conversation model
+        initMessageModel(sequelize);       // Initialize Message model
 
-        // Sync models (This is okay for initial setup/development, but migrations are preferred for schema changes)
-        // await sequelize.sync({ alter: true }); // Use alter: true carefully in production!
+        // Define associations between models
+        defineAssociations(); // Define relationships after all models are initialized
+
+        // We will use migrations for schema changes, so no sequelize.sync() here.
+        // await sequelize.sync({ alter: true });
         // console.log('Database models synced.');
 
     } catch (error) {
