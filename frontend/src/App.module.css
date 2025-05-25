@@ -1,31 +1,38 @@
-.container {
+.appContainer {
+    display: flex;
+    height: 100vh; /* Full viewport height */
     font-family: Arial, sans-serif;
-    text-align: center;
-    margin-top: 50px;
     color: #333;
-    max-width: 600px;
-    margin-left: auto;
-    margin-right: auto;
-    padding: 20px;
-    border: 1px solid #eee;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-.title {
-    color: #007bff;
-    margin-bottom: 30px;
+.leftPanel {
+    width: 350px; /* Fixed width for left panel */
+    border-right: 1px solid #eee;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    background-color: #f8f8f8;
+    overflow-y: auto; /* Allow scrolling if content overflows */
 }
 
-.formSection, .userListSection {
-    margin-bottom: 30px;
-    padding: 20px;
+.rightPanel {
+    flex-grow: 1; /* Take remaining width */
+    display: flex;
+    flex-direction: column;
+    background-color: #fff;
+}
+
+/* Styles for User Creation Form (moved from App.tsx's direct styling) */
+.userCreationSection {
+    margin-bottom: 20px;
+    padding: 15px;
     border: 1px solid #ddd;
-    border-radius: 5px;
-    background-color: #f9f9f9;
+    border-radius: 8px;
+    background-color: #fff;
+    text-align: center;
 }
 
-.formSection h2, .userListSection h2 {
+.userCreationSection h2 {
     color: #555;
     margin-top: 0;
     margin-bottom: 15px;
@@ -36,7 +43,7 @@
     margin-right: 10px;
     border: 1px solid #ccc;
     border-radius: 4px;
-    width: 200px;
+    width: calc(100% - 100px); /* Adjust width for button */
 }
 
 .button {
@@ -56,20 +63,8 @@
 .errorMessage {
     color: red;
     margin-top: 10px;
+    font-size: 0.9rem;
 }
 
-.userList {
-    list-style: none;
-    padding: 0;
-}
-
-.userItem {
-    background-color: #e9ecef;
-    border: 1px solid #dee2e6;
-    padding: 10px;
-    margin-bottom: 8px;
-    border-radius: 4px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
+/* Remove old styles that are now in components */
+/* .container, .title, .formSection, .userListSection, .userList, .userItem are now handled by specific component CSS */

@@ -1,0 +1,46 @@
+.messageInputContainer {
+    display: flex;
+    padding: 15px;
+    border-top: 1px solid #eee;
+    background-color: #f0f0f0;
+}
+
+.messageInputField {
+    flex-grow: 1;
+    padding: 10px 15px;
+    border: 1px solid #ccc;
+    border-radius: 20px;
+    font-size: 1rem;
+    margin-right: 10px;
+    outline: none;
+    transition: border-color 0.2s ease-in-out;
+}
+
+.messageInputField:focus {
+    border-color: #007bff;
+}
+
+.messageInputField:disabled {
+    background-color: #e9ecef;
+    cursor: not-allowed;
+}
+
+.sendButton {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.sendButton:hover:not(:disabled) {
+    background-color: #0056b3;
+}
+
+.sendButton:disabled {
+    background-color: #a0c8f5;
+    cursor: not-allowed;
+}

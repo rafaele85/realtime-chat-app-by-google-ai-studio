@@ -1,0 +1,33 @@
+.userSelectorContainer {
+    margin-bottom: 20px;
+    padding: 15px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    background-color: #f0f8ff;
+    text-align: center;
+}
+
+.userSelectorContainer h3 {
+    color: #333;
+    margin-top: 0;
+    margin-bottom: 15px;
+}
+
+.userSelect {
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1rem;
+    width: 80%;
+    max-width: 250px;
+    margin-bottom: 10px;
+}
+
+.selectedUserText {
+    font-size: 0.9rem;
+    color: #555;
+}
+
+.selectedUserText strong {
+    color: #007bff;
+}
