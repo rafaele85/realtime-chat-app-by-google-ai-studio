@@ -9,7 +9,7 @@ interface SendMessageBody {
     content: string;
 }
 
-const messageRoutes = async (server: FastifyInstance, options: FastifyPluginOptions) => {
+const messageRoutes = async (server: FastifyInstance, _options: FastifyPluginOptions) => {
 
     // POST /api/conversations/:conversationId/messages - Send a new message
     server.post<{ Params: { conversationId: string }, Body: SendMessageBody }>(

@@ -8,7 +8,7 @@ interface CreateUserRequestBody {
 
 // Define the Fastify plugin for user routes
 // We use a named export for the plugin function
-const userRoutes = async (server: FastifyInstance, options: FastifyPluginOptions) => {
+const userRoutes = async (server: FastifyInstance, _options: FastifyPluginOptions) => {
 
     // Route to get all users
     server.get('/users', async (_request, reply) => {

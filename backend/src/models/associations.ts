@@ -2,25 +2,25 @@ import { User } from './user.model';
 import { Conversation } from './conversation.model';
 import { Message } from './message.model';
 
-const defineAssociations = () => {
+export const defineAssociations = () => {
     // User and Message: A user sends many messages, a message belongs to one user
     User.hasMany(Message, {
         foreignKey: 'senderId',
-        as: 'sentMessages', // Alias for when fetching messages sent by a user
+        as: 'sentMessages',
     });
     Message.belongsTo(User, {
         foreignKey: 'senderId',
-        as: 'sender', // Alias for when fetching the sender of a message
+        as: 'sender',
     });
 
     // Conversation and Message: A conversation has many messages, a message belongs to one conversation
     Conversation.hasMany(Message, {
         foreignKey: 'conversationId',
-        as: 'messages', // Alias for when fetching messages in a conversation
+        as: 'messages',
     });
     Message.belongsTo(Conversation, {
         foreignKey: 'conversationId',
-        as: 'conversation', // Alias for when fetching the conversation of a message
+        as: 'conversation',
     });
 
     // User and Conversation (Many-to-Many): A user can be in many conversations, a conversation can have many users
@@ -38,5 +38,3 @@ const defineAssociations = () => {
         as: 'participants', // Alias for when fetching participants of a conversation
     });
 };
-
-export { defineAssociations };

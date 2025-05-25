@@ -1,7 +1,8 @@
 import { FastifyInstance, FastifyPluginOptions } from 'fastify';
 import { Conversation } from '../models/conversation.model';
 import { User } from '../models/user.model';
-import {Op, Sequelize} from 'sequelize'; // Import Op for Sequelize operators
+import {Op, QueryTypes} from 'sequelize';
+import {sequelize} from "../db"; // Import Op for Sequelize operators
 
 // Request body for creating a conversation
 interface CreateConversationBody {
@@ -10,7 +11,7 @@ interface CreateConversationBody {
     participantIds: number[]; // Array of user IDs to include in the conversation
 }
 
-const conversationRoutes = async (server: FastifyInstance, options: FastifyPluginOptions) => {
+const conversationRoutes = async (server: FastifyInstance, _options: FastifyPluginOptions) => {
 
     // POST /api/conversations - Create a new conversation
     server.post<{ Body: CreateConversationBody }>('/conversations', async (request, reply) => {
@@ -44,24 +45,47 @@ const conversationRoutes = async (server: FastifyInstance, options: FastifyPlugi
 
             // For direct messages, check if a conversation between these two users already exists
             if (!isGroup) {
-                const existingConversation = await Conversation.findOne({
-                    where: { isGroup: false },
-                    include: [{
-                        model: User,
-                        as: 'participants',
-                        where: { id: { [Op.in]: participantIds } },
-                        through: { attributes: [] } // Don't fetch join table attributes
-                    }],
-                    group: ['Conversation.id'], // Group by conversation ID
-                    having: Sequelize.literal(`COUNT(DISTINCT participants.id) = ${participantIds.length}`) // Ensure exactly 2 participants
+                const sortedParticipantIds = participantIds.sort((a, b) => a - b);
+                const [user1Id, user2Id] = sortedParticipantIds;
+
+                const query = `
+                  SELECT
+                      c.id
+                  FROM
+                      conversations AS c
+                  JOIN
+                      UserConversations AS uc1 ON c.id = uc1.conversationId
+                  JOIN
+                      UserConversations AS uc2 ON c.id = uc2.conversationId
+                  WHERE
+                      c.isGroup = 0
+                      AND uc1.userId = :user1Id
+                      AND uc2.userId = :user2Id
+                      AND uc1.userId != uc2.userId
+                      AND (SELECT COUNT(*) FROM UserConversations WHERE conversationId = c.id) = 2;
+                `;
+
+                const results = await sequelize.query(query, {
+                    replacements: {user1Id, user2Id},
+                    type: QueryTypes.SELECT,
+                    model: Conversation,
+                    mapToModel: true,
                 });
 
+                const existingConversation = results && results.length > 0 ? results[0] : null;
+
                 if (existingConversation) {
-                    // If an existing DM is found, return it instead of creating a new one
-                    return reply.status(200).send(existingConversation);
+                    const fullExistingConversation = await Conversation.findByPk(existingConversation.id, {
+                        include: [{
+                            model: User,
+                            as: 'participants',
+                            attributes: ['id', 'username'],
+                            through: {attributes: []}
+                        }]
+                    });
+                    return reply.status(200).send(fullExistingConversation);
                 }
             }
-
             // Create the conversation
             const conversation = await Conversation.create({
                 name: isGroup ? name : undefined, // Name only for group chats
@@ -69,7 +93,7 @@ const conversationRoutes = async (server: FastifyInstance, options: FastifyPlugi
             });
 
             // Add participants to the conversation
-            await conversation.addParticipants(participants);
+            await conversation.addParticipants(participantIds);
 
             // Fetch the conversation with participants for the response
             const createdConversation = await Conversation.findByPk(conversation.id, {
@@ -88,6 +112,7 @@ const conversationRoutes = async (server: FastifyInstance, options: FastifyPlugi
             return reply.status(500).send({ message: 'Failed to create conversation.' });
         }
     });
+
 
     // GET /api/conversations - Get all conversations (for now, later filter by current user)
     server.get('/conversations', async (_request, reply) => {

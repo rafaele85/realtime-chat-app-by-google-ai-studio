@@ -1,9 +1,9 @@
 import { Sequelize } from 'sequelize';
 import path from 'path';
 import { initUserModel } from '../models/user.model';
-import { initConversationModel } from '../models/conversation.model'; // New import
-import { initMessageModel } from '../models/message.model';       // New import
-import { defineAssociations } from '../models/associations';     // New import
+import { initConversationModel } from '../models/conversation.model';
+import { initMessageModel } from '../models/message.model';
+import { defineAssociations } from '../models/associations'; // Import the defineAssociations function
 
 // Determine the database file path
 const dbPath = path.resolve(__dirname, '..', '..', 'data', 'database.sqlite');
@@ -12,7 +12,7 @@ const dbPath = path.resolve(__dirname, '..', '..', 'data', 'database.sqlite');
 const sequelize = new Sequelize({
     dialect: 'sqlite',
     storage: dbPath,
-    logging: false,
+    logging: false, // Set to true to see SQL queries in console
 });
 
 // Function to connect to the database and initialize models
@@ -21,13 +21,14 @@ const connectDb = async () => {
         await sequelize.authenticate();
         console.log('Database connection has been established successfully.');
 
-        // Initialize models
+        // Initialize models FIRST
         initUserModel(sequelize);
-        initConversationModel(sequelize); // Initialize Conversation model
-        initMessageModel(sequelize);       // Initialize Message model
+        initConversationModel(sequelize);
+        initMessageModel(sequelize);
 
-        // Define associations between models
-        defineAssociations(); // Define relationships after all models are initialized
+        // THEN define associations after all models are initialized
+        defineAssociations();
+        console.log('Sequelize models and associations initialized.');
 
         // We will use migrations for schema changes, so no sequelize.sync() here.
         // await sequelize.sync({ alter: true });
