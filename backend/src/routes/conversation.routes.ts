@@ -3,6 +3,7 @@ import { Conversation } from '../models/conversation.model';
 import { User } from '../models/user.model';
 import {Op, QueryTypes} from 'sequelize';
 import {sequelize} from "../db"; // Import Op for Sequelize operators
+import { broadcast, WebSocketConversationEvent } from '../plugins/websocket.plugin'; // Ensure this is imported
 
 // Request body for creating a conversation
 interface CreateConversationBody {
@@ -93,7 +94,7 @@ const conversationRoutes = async (server: FastifyInstance, _options: FastifyPlug
             });
 
             // Add participants to the conversation
-            await conversation.addParticipants(participantIds);
+            await conversation.addParticipants(participantIds); // This is the line that now works!
 
             // Fetch the conversation with participants for the response
             const createdConversation = await Conversation.findByPk(conversation.id, {
@@ -104,6 +105,22 @@ const conversationRoutes = async (server: FastifyInstance, _options: FastifyPlug
                     through: { attributes: [] } // Don't include join table attributes
                 }]
             });
+
+            // Broadcast the new conversation to all connected WebSocket clients
+            if (createdConversation) {
+                const event: WebSocketConversationEvent = {
+                    type: 'NEW_CONVERSATION',
+                    payload: {
+                        id: createdConversation.id,
+                        name: createdConversation.name,
+                        isGroup: createdConversation.isGroup,
+                        createdAt: createdConversation.createdAt.toISOString(),
+                        updatedAt: createdConversation.updatedAt.toISOString(),
+                        participants: (createdConversation.participants || []).map(p => ({ id: p.id, username: p.username })),
+                    },
+                };
+                broadcast(event);
+            }
 
             return reply.status(201).send(createdConversation);
 

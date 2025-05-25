@@ -30,10 +30,6 @@ const connectDb = async () => {
         defineAssociations();
         console.log('Sequelize models and associations initialized.');
 
-        // We will use migrations for schema changes, so no sequelize.sync() here.
-        // await sequelize.sync({ alter: true });
-        // console.log('Database models synced.');
-
     } catch (error) {
         console.error('Unable to connect to the database:', error);
         process.exit(1);

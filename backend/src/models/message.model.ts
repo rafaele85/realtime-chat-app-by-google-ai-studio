@@ -1,22 +1,16 @@
-import { DataTypes, Model, Optional, Sequelize } from 'sequelize';
+import { DataTypes, Model, Sequelize, CreationOptional, NonAttribute, InferAttributes, InferCreationAttributes } from 'sequelize';
+import {User} from "./user.model";
 
-interface MessageAttributes {
-    id: number;
-    conversationId: number; // Foreign key to Conversation
-    senderId: number;       // Foreign key to User (sender)
-    content: string;
-}
-
-interface MessageCreationAttributes extends Optional<MessageAttributes, 'id'> {}
-
-class Message extends Model<MessageAttributes, MessageCreationAttributes> implements MessageAttributes {
-    declare id: number;
+class Message extends Model<InferAttributes<Message, {omit: 'sender'}>, InferCreationAttributes<Message, {omit: 'sender'}>> {
+    declare id: CreationOptional<number>;
     declare conversationId: number;
     declare senderId: number;
     declare content: string;
 
-    declare readonly createdAt: Date;
-    declare readonly updatedAt: Date;
+    declare readonly createdAt: CreationOptional<Date>;
+    declare readonly updatedAt: CreationOptional<Date>;
+
+    declare sender?: NonAttribute<User>;
 }
 
 const initMessageModel = (sequelize: Sequelize) => {
@@ -47,6 +41,8 @@ const initMessageModel = (sequelize: Sequelize) => {
                 type: DataTypes.STRING(1000), // Max 1000 characters for message content
                 allowNull: false,
             },
+            createdAt: DataTypes.DATE,
+            updatedAt: DataTypes.DATE,
         },
         {
             tableName: 'messages',

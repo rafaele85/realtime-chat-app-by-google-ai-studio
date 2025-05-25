@@ -1,30 +1,30 @@
 import {
-    BelongsToManyAddAssociationsMixin, BelongsToManyHasAssociationMixin,
-    DataTypes,
-    Model,
-    Optional,
+    BelongsToManyAddAssociationsMixin, BelongsToManyHasAssociationMixin, CreationOptional,
+    DataTypes, InferAttributes, InferCreationAttributes,
+    Model, NonAttribute,
     Sequelize
 } from 'sequelize';
 import { User } from './user.model'; // Import User model for associations
 
-interface ConversationAttributes {
-    id: number;
-    name?: string;
-    isGroup: boolean;
-}
-
-interface ConversationCreationAttributes extends Optional<ConversationAttributes, 'id'> {}
-
-class Conversation extends Model<ConversationAttributes, ConversationCreationAttributes> implements ConversationAttributes {
-    declare id: number;
+class Conversation extends Model<InferAttributes<Conversation, {omit: 'participants'}>, InferCreationAttributes<Conversation, {omit: 'participants'}>> {
+    declare id: CreationOptional<number>;
     declare name?: string;
     declare isGroup: boolean;
 
-    declare readonly createdAt: Date;
-    declare readonly updatedAt: Date;
+    declare readonly createdAt: CreationOptional<Date>;
+    declare readonly updatedAt: CreationOptional<Date>;
 
+    declare participants?: NonAttribute<User[]>;
+
+    // These are the type declarations for Sequelize's magic methods
     declare addParticipants: BelongsToManyAddAssociationsMixin<User, User['id']>;
     declare hasParticipant: BelongsToManyHasAssociationMixin<User, User['id']>;
+    // You might also want to declare other common ones for completeness, e.g.:
+    // declare getParticipants: BelongsToManyGetAssociationsMixin<User>;
+    // declare setParticipants: BelongsToManySetAssociationsMixin<User, User['id']>;
+    // declare removeParticipant: BelongsToManyRemoveAssociationMixin<User, User['id']>;
+    // declare removeParticipants: BelongsToManyRemoveAssociationsMixin<User, User['id']>;
+    // declare countParticipants: BelongsToManyCountAssociationsMixin;
 }
 
 const initConversationModel = (sequelize: Sequelize) => {
@@ -44,6 +44,8 @@ const initConversationModel = (sequelize: Sequelize) => {
                 allowNull: false,
                 defaultValue: false,
             },
+            createdAt: DataTypes.DATE,
+            updatedAt: DataTypes.DATE,
         },
         {
             tableName: 'conversations',

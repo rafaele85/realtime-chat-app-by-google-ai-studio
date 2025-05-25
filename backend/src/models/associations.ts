@@ -2,7 +2,7 @@ import { User } from './user.model';
 import { Conversation } from './conversation.model';
 import { Message } from './message.model';
 
-export const defineAssociations = () => {
+const defineAssociations = () => {
     // User and Message: A user sends many messages, a message belongs to one user
     User.hasMany(Message, {
         foreignKey: 'senderId',
@@ -38,3 +38,5 @@ export const defineAssociations = () => {
         as: 'participants', // Alias for when fetching participants of a conversation
     });
 };
+
+export { defineAssociations };

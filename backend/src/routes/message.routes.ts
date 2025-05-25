@@ -2,6 +2,7 @@ import { FastifyInstance, FastifyPluginOptions } from 'fastify';
 import { Message } from '../models/message.model';
 import { User } from '../models/user.model';
 import { Conversation } from '../models/conversation.model';
+import { broadcast, WebSocketMessageEvent } from '../plugins/websocket.plugin'; // Ensure this is imported
 
 // Request body for sending a message
 interface SendMessageBody {
@@ -35,7 +36,8 @@ const messageRoutes = async (server: FastifyInstance, _options: FastifyPluginOpt
                     return reply.status(404).send({ message: 'Sender not found.' });
                 }
 
-                const isParticipant = await conversation.hasParticipant(sender); // Sequelize magic method
+                // Note: hasParticipant is declared in conversation.model.ts
+                const isParticipant = await conversation.hasParticipant(sender);
                 if (!isParticipant) {
                     return reply.status(403).send({ message: 'Sender is not a participant of this conversation.' });
                 }
@@ -47,7 +49,7 @@ const messageRoutes = async (server: FastifyInstance, _options: FastifyPluginOpt
                     content,
                 });
 
-                // Fetch the message with sender details for the response
+                // Fetch the message with sender details for the response and broadcast
                 const createdMessage = await Message.findByPk(newMessage.id, {
                     include: [{
                         model: User,
@@ -55,6 +57,26 @@ const messageRoutes = async (server: FastifyInstance, _options: FastifyPluginOpt
                         attributes: ['id', 'username'],
                     }],
                 });
+
+                // Broadcast the new message to all connected WebSocket clients
+                if (createdMessage) {
+                    const event: WebSocketMessageEvent = {
+                        type: 'NEW_MESSAGE',
+                        payload: {
+                            id: createdMessage.id,
+                            conversationId: createdMessage.conversationId,
+                            senderId: createdMessage.senderId,
+                            content: createdMessage.content,
+                            createdAt: createdMessage.createdAt.toISOString(),
+                            updatedAt: createdMessage.updatedAt.toISOString(),
+                            sender: {
+                                id: createdMessage.sender!.id,
+                                username: createdMessage.sender!.username,
+                            },
+                        },
+                    };
+                    broadcast(event);
+                }
 
                 return reply.status(201).send(createdMessage);
 
@@ -76,12 +98,10 @@ const messageRoutes = async (server: FastifyInstance, _options: FastifyPluginOpt
             }
 
             try {
-                // Optional: Verify conversation exists and current user is a participant
                 const conversation = await Conversation.findByPk(conversationId);
                 if (!conversation) {
                     return reply.status(404).send({ message: 'Conversation not found.' });
                 }
-                // TODO: In a real app, add logic here to check if the requesting user is a participant
 
                 const messages = await Message.findAll({
                     where: { conversationId },
@@ -90,7 +110,7 @@ const messageRoutes = async (server: FastifyInstance, _options: FastifyPluginOpt
                         as: 'sender',
                         attributes: ['id', 'username'],
                     }],
-                    order: [['createdAt', 'ASC']], // Order messages by creation time
+                    order: [['createdAt', 'ASC']],
                 });
 
                 return reply.send(messages);
